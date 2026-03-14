@@ -3,10 +3,9 @@ trigger:
 
 stages:
   - stage: Build
-    displayName: Build the web application
     jobs:
-      - job: 'Build'
-        displayName: 'Build-Job'
+      - job: Build
+    displayName: Build the web application
     pool:
      name: AzDevopsagent1
      demands:
@@ -31,29 +30,27 @@ stages:
        publishLocation: 'pipeline'
        artifact: 'drop' 
 
-  - stage: 'Dev'
+  - stage: 'dev'
     displayName: 'Deploy to Dev environment'
     dependsOn: Build
-    jobs:
-      - deployment: Deploy
-        pool:
+    pool:
          name: AzDevopsagent1
-        environment: Dev
-        strategy:
+         environment: dev
+         strategy:
          runOnce:
            deploy:
              steps:
                - download: current
                  artifact: drop
 
-  - stage: 'Test'
+  - stage: 'test'
     displayName: Deploy to Test environment'
     dependsOn: Dev
     jobs:
       - deployment: Deploy
         pool:
          name: AzDevopsagent1
-         environment: Test
+         environment: test
         strategy:
          runOnce:
            deploy:
