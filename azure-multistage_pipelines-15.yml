@@ -31,11 +31,13 @@ stages:
        artifact: 'drop' 
 
   - stage: 'dev'
+    jobs:
+    - deployment: deploy
+      environment: dev
     displayName: 'Deploy to Dev environment'
     dependsOn: Build
     pool:
          name: AzDevopsagent1
-         environment: dev
          strategy:
          runOnce:
            deploy:
@@ -48,9 +50,9 @@ stages:
     dependsOn: Dev
     jobs:
       - deployment: Deploy
+        environment: test
         pool:
          name: AzDevopsagent1
-         environment: test
         strategy:
          runOnce:
            deploy:
@@ -63,9 +65,9 @@ stages:
     dependsOn: Test
     jobs:
       - deployment: Deploy
+        environment: staging
         pool:
          name: AzDevopsagent1
-         environment: staging
         strategy:
          runOnce:
            deploy:
