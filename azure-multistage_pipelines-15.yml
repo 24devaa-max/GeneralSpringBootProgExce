@@ -1,0 +1,77 @@
+trigger:
+ - development
+
+stages:
+  - stage: Build
+    displayName: Build the web application
+    jobs:
+      - job: 'Build'
+        displayName: 'Build-Job'
+    pool:
+     name: AzDevopsagent1
+     demands:
+      - mvn
+
+     steps:
+     - task: Maven@4
+       inputs:
+       mavenPomFile: 'pom.xml'
+       testResultsFiles: '**surefire-reports/TEST-*.xml'
+       javaHomeOption: JDKVersion
+       mavenVersionOption: Default
+     
+     - task: CopyFiles@2
+       inputs:
+       Contents: '**/target/*.jar'
+       TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+     - task: PublishPipelineArtifact@1
+       inputs:
+       targetPath: '$(Pipeline.Workspace)'
+       publishLocation: 'pipeline'
+       artifact: 'drop' 
+
+  - stage: 'Dev'
+    displayName: 'Deploy to Dev environment'
+    dependsOn: Build
+    jobs:
+      - deployment: Deploy
+        pool:
+         name: AzDevopsagent1
+        environment: Dev
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+               - download: current
+                 artifact: drop
+
+  - stage: 'Test'
+    displayName: Deploy to Test environment'
+    dependsOn: Dev
+    jobs:
+      - deployment: Deploy
+        pool:
+         name: AzDevopsagent1
+         environment: Test
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+               - download: current
+                 artifact: drop
+
+  - stage: 'staging'
+    displayName: Deploy to staging environment'
+    dependsOn: Test
+    jobs:
+      - deployment: Deploy
+        pool:
+         name: AzDevopsagent1
+         environment: staging
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+               - download: current
+                 artifact: drop
